@@ -3,17 +3,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "Alefgard",
+    name: "Ranasa",
     platforms: [
         .macOS(.v11),
     ],
     products: [
         .executable(
-            name: "alefgard",
-            targets: ["Alefgard"]),
+            name: "ranasa",
+            targets: ["Ranasa"]),
         .library(
-            name: "AlefgardCore",
-            targets: ["AlefgardCore"])
+            name: "RanasaCore",
+            targets: ["RanasaCore"])
     ],
     dependencies: [
         .package(
@@ -26,27 +26,21 @@ let package = Package(
             url: "https://github.com/JohnSundell/ShellOut.git",
             .upToNextMajor(from: "2.3.0")
         ),
-        .package(
-            name: "arm64-to-sim",
-            url: "https://github.com/darrarski/arm64-to-sim.git",
-            .upToNextMajor(from: "1.0.0")
-        ),
     ],
     targets: [
         .target(
-            name: "Alefgard",
+            name: "Ranasa",
             dependencies: [
-                .target(name: "AlefgardCore"),
+                .target(name: "RanasaCore"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]),
         .target(
-            name: "AlefgardCore",
+            name: "RanasaCore",
             dependencies: [
-                .product(name: "ShellOut", package: "ShellOut"),
-                .product(name: "Arm64ToSim", package: "arm64-to-sim")
+                .product(name: "ShellOut", package: "ShellOut")
             ]),
         .testTarget(
-            name: "AlefgardTests",
-            dependencies: ["Alefgard"]),
+            name: "RanasaCoreTests",
+            dependencies: ["RanasaCore"]),
     ]
 )

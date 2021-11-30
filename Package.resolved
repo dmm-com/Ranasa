@@ -2,15 +2,6 @@
   "object": {
     "pins": [
       {
-        "package": "arm64-to-sim",
-        "repositoryURL": "https://github.com/darrarski/arm64-to-sim.git",
-        "state": {
-          "branch": null,
-          "revision": "37962d62d7f8d34875f793de510950112d860083",
-          "version": "1.0.0"
-        }
-      },
-      {
         "package": "ShellOut",
         "repositoryURL": "https://github.com/JohnSundell/ShellOut.git",
         "state": {
