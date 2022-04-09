@@ -55,10 +55,12 @@ The output is an executable file, so you can treat it like a regular CLI applica
 .build/release/ranasa
 ````
 
-If you want to run it with Xcode's build script, add the `Ranasa` dependency to the project's `Package.swift` and issue the command.
+If you want to run it in the Xcode build script, you can add Mint to your project and issue the `Ranasa` command to use it.
 
 ```shell
-xcrun --sdk macosx swift run -c release ranasa
+export PATH="/opt/homebrew/bin:$PATH"
+xcrun --sdk macosx mint install ranasa
+mint run ranasa -s ${SRCROOT}/binaries -r ${SRCROOT} -v -x arm64sim.json
 ```
 
 ## Usage

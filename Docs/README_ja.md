@@ -55,10 +55,12 @@ swift build -c release
 .build/release/ranasa
 ```
 
-Xcodeのビルドスクリプトで実行したい場合にはプロジェクトの`Package.swift`に`Ranasa`の依存を追加してコマンドを発行すると利用できます。
+Xcodeのビルドスクリプトで実行したい場合にはプロジェクトにMintを追加して`Ranasa`コマンドを発行すると利用できます。
 
 ```shell
-xcrun --sdk macosx swift run -c release ranasa
+export PATH="/opt/homebrew/bin:$PATH"
+xcrun --sdk macosx mint install ranasa
+mint run ranasa -s ${SRCROOT}/binaries -r ${SRCROOT} -v -x arm64sim.json
 ```
 
 ## 使い方
