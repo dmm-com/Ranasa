@@ -120,17 +120,6 @@ final class RanasaCoreTests: XCTestCase {
                     "input: \(path.string)"
                 ]))
                 self.didDirs.insert(path.string)
-//                self.didDirs.forEach { dir in
-//                    guard dir.hasPrefix(path.string) else { return }
-//                    self.didDirs.remove(dir)
-//                }
-            }),
-            codeSign: .init(run: { path, _ in
-                self.didEffects.append(.didDep([
-                    "Reach - codeSign",
-                    "input: \(path.string)"
-                ]))
-                self.didDirs.insert(path.string)
             }),
             fileManager: .default)
         try core(

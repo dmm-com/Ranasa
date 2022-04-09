@@ -1,7 +1,7 @@
 public struct DynamicAction {
-    var run: (Path, String, Int, Int, Log?) throws -> Void
+    var run: (Path, String, Float?, Float?, Log?) throws -> Void
     
-    public func callAsFunction(current: Path, libName: String, minos: Int, sdk: Int, _ log: Log? = nil) throws {
+    public func callAsFunction(current: Path, libName: String, minos: Float?, sdk: Float?, _ log: Log? = nil) throws {
         try run(current, libName, minos, sdk, log)
     }
 }
@@ -10,8 +10,8 @@ public extension DynamicAction {
     static func live(
         fileCheck: FileCheck = .live(),
         rename: MoveItem = .live(),
-        rewriteBinary: TransmogrifierEdit = .live()
-//        rewriteBinary: VToolEdit = .live()
+        tRewriteBinary: TransmogrifierEdit = .live(),
+        vRewriteBinary: VToolEdit = .live()
     ) -> Self {
         .init { current, libName, minos, sdk, log in
             let path = current.addingComponent(libName)
@@ -21,39 +21,39 @@ public extension DynamicAction {
                 log?(.normal, "\(libName) is not thin static library")
                 return
             }
+            
             do {
-                try rewriteBinary(
+                try tRewriteBinary(
                     rewritePath: path,
                     minos: minos,
                     sdk: sdk,
-                    linkType: .static,
+                    linkType: .dynamic,
                     log?.indented())
             }
             catch let error as TransmogrifierError {
                 switch error {
                 case .alreadyProcessed:
-                    log?.indented().callAsFunction(.verbose, "- 🍎 \(path.string) is already simulator object")
+                    log?(.verbose, "Found LC_BUILD_VERSION, try vtool replace IOSSIMULATOR(7)")
+                    let renamed = current.addingComponent(libName + "_old")
+                    try rename(current: path, destination: renamed)
+                    try vRewriteBinary(
+                        input: renamed,
+                        output: path,
+                        minos: minos,
+                        sdk: sdk,
+                        log?.indented())
                 case .noSupportedFormat(let message):
                     log?.indented().callAsFunction(.verbose, message)
-                    fatalError(message)
+                    throw error
                 case .noCorrectBinary(let message):
                     log?.indented().callAsFunction(.verbose, message)
-                    fatalError(message)
+                    throw error
                 default:
-                    fatalError("Unintentional errors, Path not found")
+                    throw error
                 }
             } catch {
                 throw error
             }
-            
-//            let renamed = current.addingComponent(libName).addingComponent("old")
-//            try rename(current: current.addingComponent(libName), destination: renamed)
-//            try rewriteBinary(
-//                input: renamed,
-//                output: current.addingComponent(libName),
-//                minos: minos,
-//                sdk: sdk,
-//                log?.indented())
         }
     }
 }

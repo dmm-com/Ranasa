@@ -58,17 +58,17 @@ struct Ranasa: ParsableCommand {
     @Option(
         name: [.short, .customLong("store")],
         help: ArgumentHelp("The location to store save the binary"))
-    var storePath: String = "${HOME}/.ranasa/"
+    var storePath: String = FileManager.default.homeDirectoryForCurrentUser.relativePath + "/.ranasa"
 
     @Option(
         name: [.customLong("minos")],
-        help: ArgumentHelp("Simulator minos variable number"))
-    var minos: Int = 13
+        help: ArgumentHelp("Simulator minos variable number, default = 13.0"))
+    var minos: Float?
 
     @Option(
         name: [.customLong("sdk")],
-        help: ArgumentHelp("Simulator sdk variable number"))
-    var sdk: Int = 13
+        help: ArgumentHelp("Simulator sdk variable number, default = 13.0"))
+    var sdk: Float?
     
     @Flag(
         name: [.customShort("x"), .customLong("xcode")],
@@ -94,7 +94,6 @@ struct Ranasa: ParsableCommand {
     var isOnlyCheck: Bool = false
 
     func run() throws {
-        
         try Self.ranasaVerify(
             at: Path(configFile),
             srcroot: Path(rootPath))

@@ -1,4 +1,6 @@
 public enum WorkingTree: String, CaseIterable {
+    /// original binary
+    case original
     /// copy original library
     case arm64
     /// rewrited library
@@ -12,7 +14,7 @@ public enum WorkingTree: String, CaseIterable {
     
     func path(base: Path) -> Path {
         switch self {
-        case .arm64, .arm64_simulator, .working:
+        case .arm64, .arm64_simulator, .working, .original:
             return base.addingComponent(rawValue)
         case .thin, .extract:
             return base

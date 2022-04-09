@@ -1,8 +1,8 @@
 import Foundation
 public struct StaticAction {
-    var run: (Path, String, Int, Int, Log?) throws -> Void
+    var run: (Path, String, Float?, Float?, Log?) throws -> Void
     
-    public func callAsFunction(current: Path, libName: String, minos: Int, sdk: Int, _ log: Log? = nil) throws {
+    public func callAsFunction(current: Path, libName: String, minos: Float?, sdk: Float?, _ log: Log? = nil) throws {
         try run(current, libName, minos, sdk, log)
     }
 }

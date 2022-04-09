@@ -5,14 +5,14 @@ public enum RanasaCoreError: Error {
 }
 
 public struct RanasaCore {
-    var run: (Path, Path, Path, Int, Int, Log?) throws -> Void
+    var run: (Path, Path, Path, Float?, Float?, Log?) throws -> Void
 
     public func callAsFunction(
         at input: Path,
         backup storeBase: Path,
         root: Path,
-        minos: Int,
-        sdk: Int,
+        minos: Float?,
+        sdk: Float?,
         verbose: Log? = nil
     ) throws {
         try run(input, storeBase, root, minos, sdk, verbose)
@@ -31,10 +31,9 @@ public extension RanasaCore {
         lipoExtract: LipoExtract = .live(),
         copyItem: CopyItem = .live(),
         deleteItem: DeleteItem = .live(),
-        codeSign: CodeSign = .live(),
         fileManager: FileManager = .default
     ) -> Self {
-        .init { (input: Path, storeBase: Path, root: Path, minos: Int, sdk: Int, log: Log?) in
+        .init { (input: Path, storeBase: Path, root: Path, minos: Float?, sdk: Float?, log: Log?) in
             try decodeSetting(input: input, srcroot: root, log).forEach { (setting: FileStructure) in
                 
                 let libraryName = setting.path.lastComponent
@@ -66,55 +65,28 @@ public extension RanasaCore {
                         log?.indented())
                 }
                 
-                let originalBinary = storePath.treePath(.arm64).addingComponent(libraryName)
+                let originalBinary = storePath.treePath(.original).addingComponent(libraryName)
                 if !fileManager.fileExists(atPath: originalBinary.string) {
                     try copyItem(current: setting.path, destination: originalBinary, log?.indented())
                 }
                 
                 // Only arm64 format
                 if archs.isEmpty {
-                    let thinBinary = storePath.treePath(.thin).addingComponent(libraryName)
-                    if !fileManager.fileExists(atPath: thinBinary.string) {
-                        try copyItem(current: setting.path, destination: thinBinary, log?.indented())
-                    }
-                    
-                    switch setting.linking {
-                    case .static:
-                        try staticAction(
-                            current: storePath.treePath(.thin),
-                            libName: libraryName,
-                            minos: minos,
-                            sdk: sdk,
-                            log?.indented())
-                    case .dynamic:
-                        try dynamicAction(
-                            current: storePath.treePath(.thin),
-                            libName: libraryName,
-                            minos: minos,
-                            sdk: sdk,
-                            log?.indented())
-                    }
                     try copyItem(
-                        current: thinBinary,
-                        destination: storePath.treePath(.arm64_simulator).addingComponent(libraryName),
+                        current: setting.path,
+                        destination: storePath.treePath(.thin).addingComponent(libraryName),
                         log?.indented())
-                    if setting.linking == .dynamic {
-                        try codeSign(
-                            input: storePath.treePath(.arm64_simulator).addingComponent(libraryName),
-                            log?.indented())
-                    }
-                    return
+                } else {
+                    try lipoThin(
+                        input: setting.path,
+                        arch: .arm64,
+                        output: storePath.treePath(.thin).addingComponent(libraryName),
+                        log?.indented())
                 }
                 
-                try lipoThin(
-                    input: setting.path,
-                    arch: .arm64,
-                    output: storePath.treePath(.thin).addingComponent(libraryName),
-                    log?.indented())
-                try lipoExtract(
-                    input: setting.path,
-                    archs: archs,
-                    output: storePath.treePath(.extract).addingComponent(libraryName),
+                try copyItem(
+                    current: storePath.treePath(.thin).addingComponent(libraryName),
+                    destination: storePath.treePath(.arm64).addingComponent(libraryName),
                     log?.indented())
                 switch setting.linking {
                 case .static:
@@ -132,18 +104,10 @@ public extension RanasaCore {
                         sdk: sdk,
                         log?.indented())
                 }
-                try lipoCreate(
-                    inputs: [
-                        storePath.treePath(.thin).addingComponent(libraryName),
-                        storePath.treePath(.extract).addingComponent(libraryName)
-                    ],
-                    output: storePath.treePath(.arm64_simulator).addingComponent(libraryName),
+                try copyItem(
+                    current: storePath.treePath(.thin).addingComponent(libraryName),
+                    destination: storePath.treePath(.arm64_simulator).addingComponent(libraryName),
                     log?.indented())
-                if setting.linking == .dynamic {
-                    try codeSign(
-                        input: storePath.treePath(.arm64_simulator).addingComponent(libraryName),
-                        log?.indented())
-                }
             }
         }
     }
