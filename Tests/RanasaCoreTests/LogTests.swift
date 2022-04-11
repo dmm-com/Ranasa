@@ -2,44 +2,44 @@ import XCTest
 @testable import RanasaCore
 
 final class LogTests: XCTestCase {
-    func testNormalLogging() {
-        var logged = [String]()
-        let sut = Log.live(
+    func testLevelNormalLogging() {
+        var output = [String]()
+        let sut: Log = .live(
             level: .normal,
-            print: { logged.append($0) }
+            print: { output.append($0) }
         )
-        
-        sut(.normal, "Normal level log")
-        sut(.verbose, "Verbose level log")
-        
-        XCTAssertEqual(logged, ["Normal level log"])
+
+        sut(.normal, "normal")
+        sut(.verbose, "no output")
+
+        XCTAssertEqual(output, ["normal"])
     }
-    
-    func testVerboseLogging() {
-        var logged = [String]()
-        let sut = Log.live(
+
+    func testLevelVerboseLogging() {
+        var output = [String]()
+        let sut: Log = .live(
             level: .verbose,
-            print: { logged.append($0) }
+            print: { output.append($0) }
         )
-        
-        sut(.normal, "Normal level log")
-        sut(.verbose, "Verbose level log")
-        
-        XCTAssertEqual(logged, [
-            "Normal level log",
-            "Verbose level log"
+
+        sut(.normal, "normal")
+        sut(.verbose, "verbose")
+
+        XCTAssertEqual(output, [
+            "normal",
+            "verbose"
         ])
     }
-    
-    func testIndentedLogging() {
-        var logged = [String]()
-        let sut = Log.live(
+
+    func testOutputIndentedLogging() {
+        var output = [String]()
+        let sut: Log = .live(
             level: .normal,
-            print: { logged.append($0) }
+            print: { output.append($0) }
         ).indented()
-        
-        sut(.normal, "multiline\nlog\nmessage")
-        
-        XCTAssertEqual(logged, ["|\tmultiline\n|\tlog\n|\tmessage"])
+
+        sut(.normal, "first\nsecond\nthird")
+
+        XCTAssertEqual(output, ["|\tfirst\n|\tsecond\n|\tthird"])
     }
 }
