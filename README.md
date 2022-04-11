@@ -97,18 +97,19 @@ Input File Description
 ]
 """
 
-USAGE: ranasa <config-file> [--root <root>] [--store <store>] [--minos <minos>] [--sdk <sdk>] [--xcode] [--simulator] [--verbose] [--check]
+USAGE: ranasa <config-file> [--root <root>] [--store <store>] [--minos <minos>] [--sdk <sdk>] [--xcode] [--simulator] [--thin] [--verbose] [--check]
 
 ARGUMENTS:
   <config-file>           Path of the definition file
 
 OPTIONS:
   -r, --root <root>       The location to root the library  (default: .)
-  -s, --store <store>     The location to store save the binary (default: ${HOME}/.ranasa/)
-  --minos <minos>         Simulator minos variable number (default: 13)
-  --sdk <sdk>             Simulator sdk variable number (default: 13)
+  -s, --store <store>     The location to store save the binary (default: ${HOME}/.ranasa)
+  --minos <minos>         Simulator minos variable number, default = 13.0
+  --sdk <sdk>             Simulator sdk variable number, default = 13.0
   -x, --xcode             If in xcode script, auto detect simulator or actual. fall back to `simulator` flag.
   -a, --simulator         Replace binaries with simulator builds
+  -t, --thin              Output builds to arm64_simulator architecture only
   -v, --verbose           Log detailed info to standard output.
   -c, --check             Display how ranasa recognizes the descriptions in the configuration file.
         Does not cause side effects. Only outputs the configuration file.

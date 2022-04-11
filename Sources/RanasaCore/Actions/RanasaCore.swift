@@ -40,8 +40,8 @@ public extension RanasaCore {
                 let storePath = storeBase.addingComponent(libraryName)
                 
                 // If already rewrited, skip
-                if fileManager.fileExists(atPath: storePath.treePath(.arm64).addingComponent(libraryName).string) &&
-                    fileManager.fileExists(atPath: storePath.treePath(.arm64_simulator).addingComponent(libraryName).string) {
+                if fileManager.fileExists(atPath: storePath.addingTreePath(.arm64).addingComponent(libraryName).string) &&
+                    fileManager.fileExists(atPath: storePath.addingTreePath(.arm64_simulator).addingComponent(libraryName).string) {
                     log?(.normal, "skip \(libraryName)")
                     return
                 }
@@ -53,7 +53,7 @@ public extension RanasaCore {
                 
                 // Creating directory tree
                 try WorkingTree.allCases.forEach { leaf in
-                    let workPath = storePath.treePath(leaf)
+                    let workPath = storePath.addingTreePath(leaf)
                     guard !fileManager.dirExists(atPath: workPath.string) else { return }
                     try createDir(input: workPath, log?.indented())
                 }
@@ -61,53 +61,70 @@ public extension RanasaCore {
                 // Reserve the working directory for recursive deletion.
                 defer {
                     try? deleteItem(
-                        input: storePath.treePath(.working),
+                        input: storePath.addingTreePath(.working),
                         log?.indented())
                 }
                 
-                let originalBinary = storePath.treePath(.original).addingComponent(libraryName)
+                let originalBinary = storePath.addingTreePath(.original).addingComponent(libraryName)
                 if !fileManager.fileExists(atPath: originalBinary.string) {
                     try copyItem(current: setting.path, destination: originalBinary, log?.indented())
                 }
                 
+                let thinBinary = storePath.addingTreePath(.thin).addingComponent(libraryName)
+                let extractBinary = storePath.addingTreePath(.extract).addingComponent(libraryName)
+                
                 // Only arm64 format
                 if archs.isEmpty {
                     try copyItem(
-                        current: setting.path,
-                        destination: storePath.treePath(.thin).addingComponent(libraryName),
+                        current: originalBinary,
+                        destination: thinBinary,
                         log?.indented())
                 } else {
                     try lipoThin(
-                        input: setting.path,
+                        input: originalBinary,
                         arch: .arm64,
-                        output: storePath.treePath(.thin).addingComponent(libraryName),
+                        output: thinBinary,
+                        log?.indented())
+                    try lipoExtract(
+                        input: originalBinary,
+                        archs: archs,
+                        output: extractBinary,
                         log?.indented())
                 }
                 
                 try copyItem(
-                    current: storePath.treePath(.thin).addingComponent(libraryName),
-                    destination: storePath.treePath(.arm64).addingComponent(libraryName),
+                    current: thinBinary,
+                    destination: storePath.addingTreePath(.arm64).addingComponent(libraryName),
                     log?.indented())
                 switch setting.linking {
                 case .static:
                     try staticAction(
-                        current: storePath.treePath(.thin),
+                        current: storePath.addingTreePath(.thin),
                         libName: libraryName,
                         minos: minos,
                         sdk: sdk,
                         log?.indented())
                 case .dynamic:
                     try dynamicAction(
-                        current: storePath.treePath(.thin),
+                        current: storePath.addingTreePath(.thin),
                         libName: libraryName,
                         minos: minos,
                         sdk: sdk,
                         log?.indented())
                 }
                 try copyItem(
-                    current: storePath.treePath(.thin).addingComponent(libraryName),
-                    destination: storePath.treePath(.arm64_simulator).addingComponent(libraryName),
+                    current: thinBinary,
+                    destination: storePath.addingTreePath(.arm64_simulator).addingComponent(libraryName),
                     log?.indented())
+                if !archs.isEmpty {
+                    try lipoCreate(
+                        inputs: [
+                            storePath.addingTreePath(.thin).addingComponent(libraryName),
+                            storePath.addingTreePath(.extract).addingComponent(libraryName)
+                        ],
+                        output: storePath.addingTreePath(.fat_simulator).addingComponent(libraryName),
+                        log?.indented())
+                }
             }
         }
     }

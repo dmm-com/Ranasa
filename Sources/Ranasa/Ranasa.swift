@@ -79,6 +79,11 @@ struct Ranasa: ParsableCommand {
         name: [.customShort("a"), .customLong("simulator")],
         help: ArgumentHelp("Replace binaries with simulator builds"))
     var isSimulator: Bool = false
+    
+    @Flag(
+        name: [.customShort("t"), .customLong("thin")],
+        help: ArgumentHelp("Output builds to arm64_simulator architecture only"))
+    var isThin: Bool = false
 
     @Flag(
         name: [.short, .customLong("verbose")],
@@ -108,23 +113,22 @@ struct Ranasa: ParsableCommand {
             verbose: verbose ? Log.live(level: .verbose) : nil
         )
         
-        if isXcodeScript,
-           let value = ProcessInfo.processInfo.environment["SDKROOT"] {
-            print("SDKROOT: \(value)")
-            try Self.ranasaReplacer(
-                at: Path(configFile),
-                backup: Path(storePath),
-                root: Path(rootPath),
-                isSimulator: value.contains("Simulator"),
-                verbose: verbose ? Log.live(level: .verbose) : nil)
-        } else {
-            try Self.ranasaReplacer(
-                at: Path(configFile),
-                backup: Path(storePath),
-                root: Path(rootPath),
-                isSimulator: isSimulator,
-                verbose: verbose ? Log.live(level: .verbose) : nil)
+        var isSim: Bool {
+            if isXcodeScript,
+               let value = ProcessInfo.processInfo.environment["SDKROOT"] {
+                print("SDKROOT: \(value)")
+                return value.contains("Simulator")
+            } else {
+                return isSimulator
+            }
         }
+        try Self.ranasaReplacer(
+            at: Path(configFile),
+            backup: Path(storePath),
+            root: Path(rootPath),
+            isThin: isThin,
+            isSimulator: isSim,
+            verbose: verbose ? Log.live(level: .verbose) : nil)
         print("Completed!")
     }
 

@@ -1,16 +1,17 @@
 import Foundation
 
 public struct RanasaReplacer {
-    var run: (Path, Path, Path, Bool, Log?) throws -> Void
+    var run: (Path, Path, Path, Bool, Bool, Log?) throws -> Void
     
     public func callAsFunction(
         at input: Path,
         backup storeBase: Path,
         root: Path,
+        isThin: Bool,
         isSimulator: Bool,
         verbose: Log? = nil
     ) throws {
-        try run(input, storeBase, root, isSimulator, verbose)
+        try run(input, storeBase, root, isThin, isSimulator, verbose)
     }
 }
 
@@ -19,21 +20,24 @@ public extension RanasaReplacer {
         decodeSetting: DecodeSettings = .live(),
         replacer: BinaryReplace = .live()
     ) -> Self {
-        .init { (input: Path, storeBase: Path, root: Path, isSimulator: Bool, log: Log?) in
+        .init { (input: Path, storeBase: Path, root: Path, isThin: Bool, isSimulator: Bool, log: Log?) in
             try decodeSetting(input: input, srcroot: root, log).forEach { (setting: FileStructure) in
                 let libraryName = setting.path.lastComponent
                 let storePath = storeBase.addingComponent(libraryName)
-                if isSimulator {
-                    try replacer(
-                        setting: setting,
-                        input: storePath.treePath(.arm64_simulator).addingComponent(libraryName),
-                        log?.indented())
-                } else {
-                    try replacer(
-                        setting: setting,
-                        input: storePath.treePath(.arm64).addingComponent(libraryName),
-                        log?.indented())
+                var path: Path {
+                    switch (isSimulator, isThin) {
+                    case (true, true):
+                        return storePath.addingTreePath(.arm64_simulator).addingComponent(libraryName)
+                    case (true, false):
+                        return storePath.addingTreePath(.fat_simulator).addingComponent(libraryName)
+                    case (false, _):
+                        return storePath.addingTreePath(.arm64).addingComponent(libraryName)
+                    }
                 }
+                try replacer(
+                    setting: setting,
+                    input: path,
+                    log?.indented())
             }
         }
     }
