@@ -110,6 +110,7 @@ OPTIONS:
   -x, --xcode             If in xcode script, auto detect simulator or actual. fall back to `simulator` flag.
   -a, --simulator         Replace binaries with simulator builds
   -t, --thin              Output builds to arm64_simulator architecture only
+  -k, --original-revert   Revert placed binaries back to their original binaries
   -v, --verbose           Log detailed info to standard output.
   -c, --check             Display how ranasa recognizes the descriptions in the configuration file.
         Does not cause side effects. Only outputs the configuration file.
