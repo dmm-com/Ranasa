@@ -128,6 +128,11 @@ public extension RanasaCore {
                         ],
                         output: storePath.addingTreePath(.fat_simulator).addingComponent(libraryName),
                         log?.indented())
+                } else {
+                    try copyItem(
+                        current: thinBinary,
+                        destination: storePath.addingTreePath(.fat_simulator).addingComponent(libraryName),
+                        log?.indented())
                 }
             }
         }
