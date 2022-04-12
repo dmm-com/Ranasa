@@ -18,7 +18,7 @@ public extension DynamicAction {
             guard let archived = try fileCheck(path: path, log?.indented()),
                   archived == .dynamicBinary
             else {
-                log?(.normal, "\(libName) is not thin static library")
+                log?(.normal, "\(libName) is not thin dynamic library")
                 return
             }
             
@@ -35,7 +35,7 @@ public extension DynamicAction {
                 case .alreadyProcessed:
                     log?(.verbose, "Found LC_BUILD_VERSION, try vtool replace IOSSIMULATOR(7)")
                     let renamed = current.addingComponent(libName + "_old")
-                    try rename(current: path, destination: renamed)
+                    try rename(current: path, destination: renamed, log?.indented())
                     try vRewriteBinary(
                         input: renamed,
                         output: path,

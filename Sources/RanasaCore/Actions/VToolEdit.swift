@@ -17,7 +17,7 @@ public extension VToolEdit {
         runShellCommand: RunShellCommand = .live()
     ) -> Self {
         .init { input, output, minos, sdk, log in
-            log?(.normal, "[Rewrite Dynamic Library]")
+            log?(.normal, "[Rewrite LC_Build_Version]")
             log?(.verbose, "- input: \(input.string)")
             log?(.verbose, "- output: \(output.string)")
             

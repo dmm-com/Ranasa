@@ -14,7 +14,8 @@ public extension StaticAction {
         getFiles: GetFiles = .live(),
         fileCheck: FileCheck = .live(),
         rename: MoveItem = .live(),
-        rewriteBinary: TransmogrifierEdit = .live()
+        rewriteBinary: TransmogrifierEdit = .live(),
+        vRewriteBinary: VToolEdit = .live()
     ) -> Self {
         .init { current, libName, minos, sdk, log in
             guard let archived = try fileCheck(path: current.addingComponent(libName), log?.indented()),
@@ -32,19 +33,34 @@ public extension StaticAction {
                     log?(.normal, "\(objectPath.string) is not Mach-O 64 Object")
                     return
                 }
-                do { try rewriteBinary(rewritePath: objectPath, minos: minos, sdk: sdk, linkType: .static, log?.indented()) }
+                do {
+                    try rewriteBinary(
+                        rewritePath: objectPath,
+                        minos: minos,
+                        sdk: sdk,
+                        linkType: .static,
+                        log?.indented())
+                }
                 catch let error as TransmogrifierError {
                     switch error {
                     case .alreadyProcessed:
-                        log?.indented().callAsFunction(.verbose, "- 🍎 \(objectPath.string) is already simulator object")
+                        log?(.verbose, "Found LC_BUILD_VERSION, try vtool replace IOSSIMULATOR(7)")
+                        let renamed = Path(objectPath.string + "_old")
+                        try rename(current: objectPath, destination: renamed, log?.indented())
+                        try vRewriteBinary(
+                            input: renamed,
+                            output: objectPath,
+                            minos: minos,
+                            sdk: sdk,
+                            log?.indented())
                     case .noSupportedFormat(let message):
                         log?.indented().callAsFunction(.verbose, message)
-                        fatalError(message)
+                        throw error
                     case .noCorrectBinary(let message):
                         log?.indented().callAsFunction(.verbose, message)
-                        fatalError(message)
+                        throw error
                     default:
-                        fatalError("Unintentional errors, Path not found")
+                        throw error
                     }
                 } catch {
                     throw error
