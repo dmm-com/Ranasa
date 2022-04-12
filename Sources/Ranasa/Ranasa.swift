@@ -10,6 +10,7 @@ struct Ranasa: ParsableCommand {
     static var ranasaCore: RanasaCore = .live()
     static var ranasaVerify: RanasaSettingPrinter = .live()
     static var ranasaReplacer: RanasaReplacer = .live()
+    static var ranasaReverter: RanasaReverter = .live()
 
     static let configuration = CommandConfiguration(
         commandName: "ranasa",
@@ -84,6 +85,11 @@ struct Ranasa: ParsableCommand {
         name: [.customShort("t"), .customLong("thin")],
         help: ArgumentHelp("Output builds to arm64_simulator architecture only"))
     var isThin: Bool = false
+    
+    @Flag(
+        name: [.customShort("k"), .customLong("original-revert")],
+        help: ArgumentHelp("Revert placed binaries back to their original binaries"))
+    var isRevert: Bool = false
 
     @Flag(
         name: [.short, .customLong("verbose")],
@@ -99,10 +105,21 @@ struct Ranasa: ParsableCommand {
     var isOnlyCheck: Bool = false
 
     func run() throws {
+        let log = verbose ? Log.live(level: .verbose) : nil
+        
         try Self.ranasaVerify(
             at: Path(configFile),
             srcroot: Path(rootPath))
         if isOnlyCheck { return }
+        
+        if isRevert {
+            try Self.ranasaReverter(
+                at: Path(configFile),
+                backup: Path(storePath),
+                root: Path(rootPath),
+                verbose: log)
+            return
+        }
 
         try Self.ranasaCore(
             at: Path(configFile),
@@ -110,8 +127,7 @@ struct Ranasa: ParsableCommand {
             root: Path(rootPath),
             minos: minos,
             sdk: sdk,
-            verbose: verbose ? Log.live(level: .verbose) : nil
-        )
+            verbose: log)
         
         var isSim: Bool {
             if isXcodeScript,
@@ -128,7 +144,7 @@ struct Ranasa: ParsableCommand {
             root: Path(rootPath),
             isThin: isThin,
             isSimulator: isSim,
-            verbose: verbose ? Log.live(level: .verbose) : nil)
+            verbose: log)
         print("Completed!")
     }
 

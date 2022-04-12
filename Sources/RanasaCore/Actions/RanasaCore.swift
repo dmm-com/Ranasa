@@ -40,8 +40,12 @@ public extension RanasaCore {
                 let storePath = storeBase.addingComponent(libraryName)
                 
                 // If already rewrited, skip
-                if fileManager.fileExists(atPath: storePath.addingTreePath(.arm64).addingComponent(libraryName).string) &&
-                    fileManager.fileExists(atPath: storePath.addingTreePath(.arm64_simulator).addingComponent(libraryName).string) {
+                if fileManager.fileExists(
+                    atPath: storePath.addingTreePath(.arm64).addingComponent(libraryName).string) &&
+                    fileManager.fileExists(
+                        atPath: storePath.addingTreePath(.arm64_simulator).addingComponent(libraryName).string) &&
+                    fileManager.fileExists(
+                        atPath: storePath.addingTreePath(.fat_simulator).addingComponent(libraryName).string) {
                     log?(.normal, "skip \(libraryName)")
                     return
                 }
