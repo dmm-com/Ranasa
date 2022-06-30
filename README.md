@@ -11,6 +11,8 @@
 macOS utility for selective arm64-linking-architecture for Library.
 This tool was developed during the course of work at DMM.com.
 
+This tool is actually used in the iOS version of the DMM Books app.
+
 ## Description
 
 `Ranasa` is a tool inspired by `darrarski/xcframework-maker`.
